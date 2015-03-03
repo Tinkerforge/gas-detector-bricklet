@@ -25,6 +25,8 @@
 #include <stdint.h>
 #include "bricklib/com/com_common.h"
 
+#define DETECTOR_TYPE_EEPROM_POSITION (BRICKLET_PLUGIN_MAX_SIZE + 96)
+
 #define FID_GET_VALUE 1
 #define FID_SET_VALUE_CALLBACK_PERIOD 2
 #define FID_GET_VALUE_CALLBACK_PERIOD 3
@@ -99,6 +101,9 @@ void heater_on(const ComType com, const HeaterOn *data);
 void heater_off(const ComType com, const HeaterOff *data);
 void is_heater_on(const ComType com, const IsHeaterOn *data);
 
+void write_detector_type_to_eeprom(void);
+void read_detector_type_from_eeprom(void);
+void update_detector_type(void);
 void reinitialize_moving_average(void);
 int32_t from_analog_value(const int32_t value);
 

@@ -121,9 +121,14 @@ void constructor(void) {
     PIN_HEATER.attribute = PIO_DEFAULT;
     BA->PIO_Configure(&PIN_HEATER, 1);
 
-	adc_channel_enable(BS->adc_channel);
-	// TOOD: Read detector type from EEPROM
+    BC->heater = true;
+    BC->detector_type = 0; // detector_type default = 0
 
+    read_detector_type_from_eeprom();
+    update_detector_type();
+
+
+	adc_channel_enable(BS->adc_channel);
 	SLEEP_MS(2);
 
 	BC->moving_average_upto = MAX_MOVING_AVERAGE;
@@ -149,6 +154,54 @@ void reinitialize_moving_average(void) {
 	}
 	BC->moving_average_tick = 0;
 	BC->moving_average_sum = initial_value*BC->moving_average_upto;
+}
+
+void update_detector_type(void) {
+	switch(BC->detector_type) {
+		case 0: {
+			PIN_20K.type = PIO_OUTPUT_1;
+			PIN_200K.type = PIO_OUTPUT_0;
+			break;
+		}
+
+		case 1: {
+			PIN_20K.type = PIO_OUTPUT_0;
+			PIN_200K.type = PIO_OUTPUT_1;
+			break;
+		}
+
+		default: {
+			// TODO: Error?
+			return;
+		}
+
+	}
+
+    BA->PIO_Configure(&PIN_200K, 1);
+    BA->PIO_Configure(&PIN_20K, 1);
+}
+
+void write_detector_type_to_eeprom(void) {
+	BA->bricklet_select(BS->port - 'a');
+	BA->i2c_eeprom_master_write(BA->twid->pTwi,
+	                            DETECTOR_TYPE_EEPROM_POSITION,
+	                            (const char*)&BC->detector_type,
+	                            1);
+	BA->bricklet_deselect(BS->port - 'a');
+}
+
+void read_detector_type_from_eeprom(void) {
+	uint8_t dt;
+	BA->bricklet_select(BS->port - 'a');
+	BA->i2c_eeprom_master_read(BA->twid->pTwi,
+	                           DETECTOR_TYPE_EEPROM_POSITION,
+	                           (char*)&dt,
+	                           1);
+	BA->bricklet_deselect(BS->port - 'a');
+
+	if(dt < 2) { // Only set valid detector type
+		BC->detector_type = dt;
+	}
 }
 
 int32_t from_analog_value(const int32_t value) {
@@ -189,9 +242,11 @@ void get_moving_average(const ComType com, const GetMovingAverage *data) {
 }
 
 void set_detector_type(const ComType com, const SetDetectorType *data) {
-	// TODO: Change detector type
-	// TOOD: Write detector type to EEPROM
-	BC->detector_type = data->detector_type;
+	if(data->detector_type < 2) {
+		BC->detector_type = data->detector_type;
+		write_detector_type_to_eeprom();
+		update_detector_type();
+	}
 	BA->com_return_setter(com, data);
 }
 
@@ -205,13 +260,15 @@ void get_detector_type(const ComType com, const GetDetectorType *data) {
 }
 
 void heater_on(const ComType com, const HeaterOn *data) {
-	// TODO: Turn heater on
+    PIN_HEATER.type = PIO_OUTPUT_1;
+    BA->PIO_Configure(&PIN_HEATER, 1);
 	BC->heater = true;
 	BA->com_return_setter(com, data);
 }
 
 void heater_off(const ComType com, const HeaterOff *data) {
-	// TODO: Turn heater off
+    PIN_HEATER.type = PIO_OUTPUT_0;
+    BA->PIO_Configure(&PIN_HEATER, 1);
 	BC->heater = false;
 	BA->com_return_setter(com, data);
 }
