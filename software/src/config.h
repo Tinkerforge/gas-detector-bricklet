@@ -51,6 +51,7 @@
 #define BRICKLET_HAS_SIMPLE_SENSOR
 #define BRICKLET_NO_OFFSET
 #define INVOCATION_IN_BRICKLET_CODE
+#define SIMPLE_VALUE_TYPE uint16_t
 #define NUM_SIMPLE_VALUES 1
 #define MAX_MOVING_AVERAGE 100
 
@@ -78,7 +79,6 @@ typedef struct {
 	uint32_t moving_average_sum;
 	uint8_t moving_average_tick;
 	uint8_t moving_average_upto;
-
 
 	uint8_t detector_type;
 	bool heater;
