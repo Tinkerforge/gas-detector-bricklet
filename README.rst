@@ -1,7 +1,7 @@
 Gas Detector Bricklet
 =====================
 
-**This Bricklet is currently in development.**
+**The development of this Bricklet was stopped.**
 
 This repository contains the firmware source code and the hardware design
 files. The documentation generator configs can be found at
